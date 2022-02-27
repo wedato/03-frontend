@@ -10,9 +10,10 @@ import {ActivatedRoute} from "@angular/router";
 })
 export class ProductListComponent implements OnInit {
 
-  currentCategoryName!: string | null;
+  currentCategoryName!: string;
   products!: Product[];
   currentCategoryId!: number;
+  searchMode!: boolean;
   constructor(private productService: ProductService,
               private route: ActivatedRoute) {
 
@@ -26,7 +27,16 @@ export class ProductListComponent implements OnInit {
   }
 
   listProducts() {
+    this.searchMode = this.route.snapshot.paramMap.has('keyword');
+    if (this.searchMode){
+      this.handleSearchProducts();
+    }
+    else {
+      this.handleListProducts();
+    }
+  }
 
+  handleListProducts() {
     //check if "id" parameter is available
     const hasCategoryId: boolean = this.route.snapshot.paramMap.has('id');
     if (hasCategoryId){
@@ -34,7 +44,7 @@ export class ProductListComponent implements OnInit {
       this.currentCategoryId = +this.route.snapshot.paramMap.get('id')!;
 
       // get the "name" param string
-     this.currentCategoryName = this.route.snapshot.paramMap.get('name');
+      this.currentCategoryName = this.route.snapshot.paramMap.get('name')!;
     }
     else {
       // not category id available .. default to category id 1
@@ -49,4 +59,15 @@ export class ProductListComponent implements OnInit {
     )
   }
 
+   handleSearchProducts() {
+    // check if "id" parameter is available
+    const theKeyWord: string = this.route.snapshot.paramMap.get('keyword')!;
+
+    //now search for the product using keyword
+     this.productService.searchProducts(theKeyWord).subscribe(
+       data => {
+         this.products = data;
+       }
+     );
+  }
 }
